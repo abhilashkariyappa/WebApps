@@ -1,0 +1,35 @@
+img {
+    max-width: 100%;
+}
+
+.box {
+  width: 300px;
+  display: inline-block;
+  vertical-align: top;
+  margin: 15px;
+  height: auto; 
+}
+
+.sidebar-nav-fixed {
+    position:fixed;
+    top:100;
+    left:20;
+}
+#loading{text-align: center; margin-top: 150px}
+
+#content {
+  margin: 0 auto;
+  width: auto;
+}
+
+.col3 { width: 300px; }
+
+
+/**** Base styles 
+
+Bleu : #1BBBE9
+
+Rouge : #E31937
+
+
+****/
