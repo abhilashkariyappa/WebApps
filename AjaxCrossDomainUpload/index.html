@@ -1,0 +1,182 @@
+<!DOCTYPE>
+<html>
+<head>
+
+	<title></title>
+
+	<meta charset="UTF-8" />
+
+    
+
+	<link rel="stylesheet" href="js/fancybox/jquery.fancybox.css" type="text/css" media="screen" />
+
+	<!--[if lt IE 9]>
+	<script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+	<![endif]-->
+    <script src="http://code.jquery.com/jquery-latest.min.js"></script>
+	
+
+</head>
+<body>
+
+    <header></header>
+    <section>
+        <h1>Upload File</h1> 
+        <div id="wrap_form"> 
+            <form method="post" action="" id="upload_file" enctype="multipart/form-data" target="upload_target">     
+                <fieldset>
+                    <label for="first_name">First Name</label>       
+                    <input type="text" value="" id="first_name" name="first_name" />    
+                </fieldset>           
+                <fieldset>
+                    <label for="last_name">Last Name</label>       
+                    <input type="text" value="" id="last_name" name="last_name" />     
+                </fieldset>              
+                <fieldset>
+                    <label for="email">email</label>       
+                    <input type="text" value="" id="email" name="email" />     
+                </fieldset>      
+                <fieldset>          
+                    <label for="title">Title</label>       
+                    <input type="text" value="" id="title" name="title" />     
+                </fieldset>     
+                <fieldset>         
+                    <label for="userfile">File</label>       
+                    <input type="file" size="20" id="userfile" name="userfile" />     
+                </fieldset>     
+                <input type="submit" name="submit" id="submit" /> 
+            </form> 
+            <p><iframe id="upload_target" name="upload_target" src="#" style="width:0;height:0;border:0px solid #fff;"></iframe></p>
+            <h2>Files</h2> 
+            <div id="files">&#160;</div> 
+        </div> 
+        <div id="gallery">
+            <ul>&#160;</ul>     
+            <div style="clear:both">&#160;</div>     
+        </div>
+
+
+
+<script type="text/javascript">
+
+$(document).ready(function(){	
+    var title_email = []; 
+    function get_image(){
+        $.getJSON('http://gator304.hostgator.com/~marc/wecare/index.php/upload/files?jsoncallback=?', function(data){
+
+        console.log(data);
+	   $.each(data, function() {
+	       var path = this.thumbs_url.split('/thumbs/');
+	       var image_url = path[0]+'/'+path[1];
+	       $('#gallery ul').append('<li class="thumb"><a href="'+image_url+'" class="thumbs_list"><img src="'+this.thumbs_url+'" alt="'+this.title+'" /></a></br/><span class="img_title">'
+		      +this.title+'</span><br/><span>'
+		      +this.first_name+', '+this.last_name+'</span><br/><a href="" class="rating" id="'+this.ID+'">'
+		      +this.rate+'</a></li>');
+		      title_email.push(this.email);
+	   });         
+			
+	//for online only
+	$('.thumb a img').each(function(){                
+		var url_img = $(this).attr('src').split('/portal/Portals/0/');
+		$(this).attr('src',url_img[1]);
+	});  
+
+        //start the fancybox
+	$("a.thumbs_list").fancybox();				
+		rating();
+      });
+   }
+	 
+	get_image();
+	  
+	  //start the rating system
+	  //$.cookie("oxygencgi", null); 
+	  function rating(){
+		$('.rating').each(function(){				
+			$(this).click(function(){
+				//block the a href click function
+				if($.cookie("oxygencgi") == "rating"){
+					$('#files').html("You can only vote one times");
+				}else{			
+					var currentValue = $(this).html();
+					var newValue = parseInt(parseFloat(currentValue)) + 1;
+					var data_str = "id=" + $(this).attr('ID') + "&score=" + newValue;
+					var data_url = "http://gator304.hostgator.com/~marc/wecare/index.php/upload/rating?"+data_str+'&jsoncallback1=?';
+					$.getJSON(data_url,function(data) {
+					     if(data == "success"){
+					     	$.cookie("oxygencgi", "rating"); //set the rating cookie after the first rat
+					     	location.reload(); //refresh the browser to don't the list double display
+					     }else{
+					     	$('#files').html("something was wrong when you rating, please try it again!");
+					     }
+					});
+					
+										
+				}				
+				return false;			
+			});
+		});
+	   }
+
+
+
+
+	$('#submit').click(function() {	  	
+	  	 var title = $('#title').val();
+	     var first_name = $('#first_name').val();
+	     var last_name = $('#last_name').val();
+	     var email = $('#email').val();
+	     
+	     var img_title = [];
+		 $('.img_title').each(function(){				
+			img_title.push($(this).html()); //create array for all the title
+		 });
+
+	  	 if(title == '' || first_name == '' || last_name == '' || email == ''){	  	 	
+	  	 	$('#files').html("lease enter a the information neccessary");	  	 	
+	  	 }else if( !email.match("@cgi.com")){
+	  	 	$('#files').html("Pleas use your email with @cgi.com");
+	  	 }else if($.inArray(title,img_title) != -1){
+	  	 	$('#files').html("This title has already been used, please choise a other one, thank you!");
+	  	 }else if($.inArray(email,title_email) != -1){
+	  	 	$('#files').html("I know you want send more, but rule is rule, one photo one member, sorry but thank you!");
+	  	 }else{	  		  	 	
+			var upload_url = "http://gator304.hostgator.com/~marc/wecare/index.php/upload/upload_file";  
+		    $.ajaxFileUpload({
+		         url: upload_url,
+		         secureuri:false,
+		         fileElementId:'userfile',
+		         dataType: 'jsonp', 
+		         data :{
+		         	'title': title,
+		         	'first_name': first_name,
+		         	'last_name': last_name,
+		         	'email': email
+		         },
+		         success  : function (data, status)
+		         {
+		         	$('#files').html("Your image have been uploaded, Thank you for your participation!");
+		         	location.reload(); //refresh the browser to don't the list double display
+		         	get_image();
+		         }
+		    }); 
+   	     }		  	     
+   	     return false;  	     
+    	});
+});
+ 	
+</script>
+    <div style="clear:both">&#160;</div>
+
+
+
+    </section>
+    <footer></footer>
+	
+	<script type="text/javascript" src="js/ajaxfileupload.js"></script>
+	<script type="text/javascript" src="js/cookie.js"></script> 
+	<script type="text/javascript" src="js/fancybox/jquery.fancybox.pack.js"></script> 
+
+
+</body>
+</html>
