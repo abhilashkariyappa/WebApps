@@ -142,7 +142,7 @@ class Upload extends CI_Controller
 		$this->load->library('email');    
         $this->email->set_newline("\r\n");
         $this->email->from($email);
-        $this->email->to("wei.huang@cgi.com");
+        $this->email->to("acb@abc.com");
         $this->email->subject('A New Participant for Oxygen City Page');
         $this->email->message('There is a new participant for oxygen city page, email : '.$email);      
         if($this->email->send()){
